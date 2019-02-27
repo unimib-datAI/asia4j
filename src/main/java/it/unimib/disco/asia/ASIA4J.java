@@ -8,4 +8,6 @@ public interface ASIA4J {
 
     String extendWeather(String id, String date, String aggregator, String weatherParam, String offset);
 
+    String geoExactMatch(String id, String source, String target);
+
 }

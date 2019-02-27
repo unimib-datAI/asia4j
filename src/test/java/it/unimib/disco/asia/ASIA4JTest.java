@@ -279,4 +279,47 @@ public class ASIA4JTest {
                 client.extendWeather("2953481", "2018-07-25", null, "2t", "1"));
     }
 
+    @Test
+    public void testGeoMatch() {
+        asiaService.stubFor(get(urlMatching("/geoExactMatch?.*"))
+                .withQueryParam("ids", equalTo("Milan"))
+                .withQueryParam("source", equalTo("dbpedia"))
+                .withQueryParam("target", equalTo("wikidata"))
+                .willReturn(aResponse().withBody("{\n" +
+                        "    \"meta\": {\n" +
+                        "        \"id\": \"http://www.w3.org/2004/02/skos/core#exactMatch\",\n" +
+                        "        \"name\": \"exactMatch\"\n" +
+                        "    },\n" +
+                        "    \"rows\": {\n" +
+                        "        \"Milan\": {\n" +
+                        "            \"exactMatch\": [\n" +
+                        "                {\n" +
+                        "                    \"str\": \"http://www.wikidata.org/entity/Q49295412\"\n" +
+                        "                }\n" +
+                        "            ]\n" +
+                        "        }\n" +
+                        "    }\n" +
+                        "}")));
+        asiaService.stubFor(get(urlMatching("/geoExactMatch?.*"))
+                .withQueryParam("source", equalTo("null"))
+                .willReturn(serverError()));
+        asiaService.stubFor(get(urlMatching("/geoExactMatch?.*"))
+                .withQueryParam("target", equalTo("null"))
+                .willReturn(serverError()));
+        asiaService.stubFor(get(urlMatching("/geoExactMatch?.*"))
+                .withQueryParam("ids", equalTo("null"))
+                .willReturn(serverError()));
+
+        Assert.assertEquals("",
+                client.geoExactMatch(null, null, null));
+        Assert.assertEquals("",
+                client.geoExactMatch("Milan", "dbpedia", null));
+        Assert.assertEquals("",
+                client.geoExactMatch("Milan", null, "wikidata"));
+        Assert.assertEquals("",
+                client.geoExactMatch(null, "dbpedia", "wikidata"));
+        Assert.assertEquals("http://www.wikidata.org/entity/Q49295412",
+                client.geoExactMatch("Milan", "dbpedia", "wikidata"));
+    }
+
 }

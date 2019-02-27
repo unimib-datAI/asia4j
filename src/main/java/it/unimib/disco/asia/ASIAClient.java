@@ -12,6 +12,9 @@ class ASIAClient implements ASIA4J {
 
     ASIAClient(String endpoint) {
         this.endpoint = endpoint;
+
+        if (this.endpoint != null && this.endpoint.charAt(endpoint.length() -1) != '/')
+            this.endpoint += '/';
     }
 
     public String reconcile(String label, String type, double threshold, String conciliator) {
@@ -39,6 +42,17 @@ class ASIAClient implements ASIA4J {
                     this.endpoint, URLEncoder.encode(query, "UTF-8"), conciliator);
 
             return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get(property).get(0).get("id").asText();
+        } catch (Exception ignored) { }
+
+        return "";
+    }
+
+    public String geoExactMatch(String id, String source, String target) {
+        try {
+            String url = String.format("%sgeoExactMatch?ids=%s&source=%s&target=%s",
+                    this.endpoint, URLEncoder.encode(id, "UTF-8"), source, target);
+
+            return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get("exactMatch").get(0).get("str").asText();
         } catch (Exception ignored) { }
 
         return "";
