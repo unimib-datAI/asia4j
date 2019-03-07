@@ -41,7 +41,9 @@ class ASIAClient implements ASIA4J {
             String url = String.format("%sextend?extend=%s&conciliator=%s",
                     this.endpoint, URLEncoder.encode(query, "UTF-8"), conciliator);
 
-            return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get(property).get(0).get("id").asText();
+            // Handle different kind of objects -> keep the first and return it as a string
+            return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get(property).get(0).elements().next().asText();
+
         } catch (Exception ignored) { }
 
         return "";
@@ -52,7 +54,7 @@ class ASIAClient implements ASIA4J {
             String url = String.format("%sgeoExactMatch?ids=%s&source=%s&target=%s",
                     this.endpoint, URLEncoder.encode(id, "UTF-8"), source, target);
 
-            return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get("exactMatch").get(0).get("str").asText();
+            return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get("exactMatch").get(0).elements().next().asText();
         } catch (Exception ignored) { }
 
         return "";
