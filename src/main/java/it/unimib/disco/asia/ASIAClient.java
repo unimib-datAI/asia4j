@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URL;
 import java.net.URLEncoder;
 
-class ASIAClient implements ASIA4J {
+public class ASIAClient implements ASIA4J {
 
     private String endpoint;
 

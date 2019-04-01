@@ -31,6 +31,55 @@ public class ASIA4JTest {
         System.setProperty("asiaEndpoint", asiaEndpoint);
         ASIA4J sameClient = ASIA4JFactory.getClient();
         Assert.assertEquals(client, sameClient);
+
+        ASIA4J httpClient = ASIA4JFactory.getClient("http", ASIAClient.class);
+        ASIA4J httpHashClient = ASIA4JFactory.getClient("http", ASIAHashtableClient.class);
+        ASIA4J sameHttpClient = ASIA4JFactory.getClient("http", ASIAClient.class);
+        Assert.assertTrue(httpClient instanceof ASIAClient);
+        Assert.assertTrue(httpHashClient instanceof ASIAHashtableClient);
+        Assert.assertEquals(httpClient, sameHttpClient);
+    }
+
+    @Test
+    public void testHashClient() {
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\":{\"query\":\"Berlin\",  \"type\":\"A.ADM1\", \"type_strict\":\"should\"}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": [\n" +
+                                "            {\n" +
+                                "                \"id\": \"2950157\",\n" +
+                                "                \"name\": \"Land Berlin\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"A.ADM1\",\n" +
+                                "                        \"name\": \"A.ADM1\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 36.59111785888672,\n" +
+                                "                \"match\": false\n" +
+                                "            }\n" +
+                                "        ]\n" +
+                                "    }\n" +
+                                "}")));
+        ASIA4J hClient = ASIA4JFactory.getClient(asiaEndpoint, ASIAHashtableClient.class);
+        Assert.assertEquals("2950157",
+                hClient.reconcile("Berlin", "A.ADM1", 0.1, "geonames"));
+        Assert.assertEquals("2950157",
+                hClient.reconcile("Berlin", "A.ADM1", 0.1, "geonames")); // HASHMAP HIT
+        Assert.assertEquals(
+                1,
+                asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
+        client.reconcile("Berlin", "A.ADM1", 0.1, "geonames");
+        Assert.assertEquals(
+                2,
+                asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
+        hClient.reconcile("Berlin", "A.ADM1", 0.2, "geonames");
+        Assert.assertEquals(
+                3,
+                asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
     }
 
     @Test
