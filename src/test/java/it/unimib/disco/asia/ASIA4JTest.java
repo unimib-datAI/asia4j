@@ -18,7 +18,19 @@ public class ASIA4JTest {
 
     @BeforeClass
     public static void setUp() {
-        client = ASIA4JFactory.build(asiaEndpoint);
+        client = ASIA4JFactory.getClient(asiaEndpoint);
+    }
+
+    @Test
+    public void testFactory() {
+        ASIA4J oldInstance = ASIA4JFactory.getClient(asiaEndpoint);
+        Assert.assertEquals(oldInstance, client);
+        ASIA4J newInstance = ASIA4JFactory.getClient("http://localhost:8088");
+        Assert.assertNotEquals(oldInstance, newInstance);
+
+        System.setProperty("asiaEndpoint", asiaEndpoint);
+        ASIA4J sameClient = ASIA4JFactory.getClient();
+        Assert.assertEquals(client, sameClient);
     }
 
     @Test
