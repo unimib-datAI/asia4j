@@ -2,37 +2,63 @@ package it.unimib.disco.asia;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.unimib.disco.asia.model.*;
 
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.*;
 
-public class ASIAClient implements ASIA4J {
+public class GrafterizerClient implements ASIA4J {
 
     private String endpoint;
 
-    ASIAClient(String endpoint) {
+    GrafterizerClient(String endpoint) {
         this.endpoint = endpoint;
 
         if (this.endpoint != null && this.endpoint.charAt(endpoint.length() -1) != '/')
             this.endpoint += '/';
     }
 
-    public String reconcile(String label, String type, double threshold, String conciliator) {
+    public String reconcile(Annotation annotation) {
         try {
-            String query = (type == null || type.isEmpty()) ?
-                    String.format("{\"q0\": {\"query\": \"%s\"}}", label) :
-                    String.format("{\"q0\": {\"query\": \"%s\",  \"type\":\"%s\", \"type_strict\":\"should\"}}", label, type);
+            List<PropertyValue> pvList = new ArrayList<>();
+
+            if (annotation.getReconciliation() instanceof MultiColumnReconciliation) {
+                List<ReconciliationSupportColumn> supportColumns = ((MultiColumnReconciliation)annotation.getReconciliation()).getSupportColumns();
+
+                for (ReconciliationSupportColumn sc: supportColumns) {
+                    if (sc.getColumnAnnotation() != null && sc.getColumnAnnotation().getConciliator().equals(annotation.getConciliator())) {
+                        pvList.add(new PropertyValueId(sc.getProperty(), sc.getValue()));
+                    } else {
+                        try {
+                            double d = Double.parseDouble(sc.getValue());
+                            pvList.add(new PropertyValueNumber(sc.getProperty(), d));
+                        } catch (NumberFormatException | NullPointerException nfe) {
+                            pvList.add(new PropertyValueString(sc.getProperty(), sc.getValue()));
+                        }
+                    }
+                }
+            }
+
+            ReconciliationQuery q = new ReconciliationQuery(annotation.getReconciliation().getValue(),
+                    annotation.getReconciliation().getInferredTypes(), pvList);
+
+            ObjectMapper om = new ObjectMapper();
 
             String url = String.format("%sreconcile?queries=%s&conciliator=%s",
-                    this.endpoint, URLEncoder.encode(query, "UTF-8"), conciliator);
+                    this.endpoint,
+                    URLEncoder.encode(om.writeValueAsString(Collections.singletonMap("q0", q)), "UTF-8"),
+                    annotation.getConciliator());
 
             JsonNode results = new ObjectMapper().readTree(new URL(url)).get("q0").get("result");
-            if (results.get(0).get("score").asDouble() >= threshold) {
+            if (results.get(0).get("score").asDouble() >= annotation.getReconciliation().getThreshold()) {
                 return results.get(0).get("id").asText();
             }
+
         } catch (Exception ignored) { }
 
         return "";
+
     }
 
     public String extend(String id, String property, String conciliator) {

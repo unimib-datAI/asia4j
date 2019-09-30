@@ -8,7 +8,7 @@
     <artifactId>asia4j</artifactId>
     <name>ASIA4J</name>
     <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1-SNAPSHOT</version>
 
     <dependencies>
         <dependency>

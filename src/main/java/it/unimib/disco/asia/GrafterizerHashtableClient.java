@@ -1,20 +1,21 @@
 package it.unimib.disco.asia;
 
+import it.unimib.disco.asia.model.Annotation;
 import it.unimib.disco.asia.model.request.*;
 
 import java.util.Hashtable;
 
-public class ASIAHashtableClient extends ASIAClient implements ASIA4J {
+public class GrafterizerHashtableClient extends GrafterizerClient {
 
     private static Hashtable<ASIARequest, String> ht = new Hashtable<>();
 
-    ASIAHashtableClient(String endpoint) {
+    GrafterizerHashtableClient(String endpoint) {
         super(endpoint);
     }
 
-    public String reconcile(String label, String type, double threshold, String conciliator) {
-        ASIARequest req = new ReconciliationRequest(label, type, threshold, conciliator);
-        return ht.computeIfAbsent(req, k -> super.reconcile(label, type, threshold, conciliator));
+    public String reconcile(Annotation annotation) {
+        ASIARequest req = new ReconciliationRequest(annotation);
+        return ht.computeIfAbsent(req, k -> super.reconcile(annotation));
     }
 
     public String extend(String id, String property, String conciliator) {

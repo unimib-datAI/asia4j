@@ -1,10 +1,15 @@
 package it.unimib.disco.asia;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import it.unimib.disco.asia.model.*;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
@@ -23,7 +28,7 @@ public class ASIA4JTest {
 
     @Test
     public void testFactory() {
-        ASIA4J oldInstance = ASIA4JFactory.getClient(asiaEndpoint);
+        ASIA4J oldInstance = ASIA4JFactory.getClient(asiaEndpoint, GrafterizerClient.class);
         Assert.assertEquals(oldInstance, client);
         ASIA4J newInstance = ASIA4JFactory.getClient("http://localhost:8088");
         Assert.assertNotEquals(oldInstance, newInstance);
@@ -32,11 +37,11 @@ public class ASIA4JTest {
         ASIA4J sameClient = ASIA4JFactory.getClient();
         Assert.assertEquals(client, sameClient);
 
-        ASIA4J httpClient = ASIA4JFactory.getClient("http", ASIAClient.class);
-        ASIA4J httpHashClient = ASIA4JFactory.getClient("http", ASIAHashtableClient.class);
-        ASIA4J sameHttpClient = ASIA4JFactory.getClient("http", ASIAClient.class);
-        Assert.assertTrue(httpClient instanceof ASIAClient);
-        Assert.assertTrue(httpHashClient instanceof ASIAHashtableClient);
+        ASIA4J httpClient = ASIA4JFactory.getClient("http", GrafterizerClient.class);
+        ASIA4J httpHashClient = ASIA4JFactory.getClient("http", GrafterizerHashtableClient.class);
+        ASIA4J sameHttpClient = ASIA4JFactory.getClient("http", GrafterizerClient.class);
+        Assert.assertTrue(httpClient instanceof GrafterizerClient);
+        Assert.assertTrue(httpHashClient instanceof GrafterizerHashtableClient);
         Assert.assertEquals(httpClient, sameHttpClient);
     }
 
@@ -64,22 +69,173 @@ public class ASIA4JTest {
                                 "        ]\n" +
                                 "    }\n" +
                                 "}")));
-        ASIA4J hClient = ASIA4JFactory.getClient(asiaEndpoint, ASIAHashtableClient.class);
-        Assert.assertEquals("2950157",
-                hClient.reconcile("Berlin", "A.ADM1", 0.1, "geonames"));
-        Assert.assertEquals("2950157",
-                hClient.reconcile("Berlin", "A.ADM1", 0.1, "geonames")); // HASHMAP HIT
+
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\": {\"query\": \"Steinheim an der Murr\", \"type\":\"A.ADM4\", \"type_strict\":\"should\", \"properties\" : [\n" +
+                        "      { \"p\" : \"http://www.geonames.org/ontology#countryCode\", \"v\" : \"DE\" }, { \"p\" : \"http://www.geonames.org/ontology#parentADM1\",\"v\" : { \"id\" : \"2951481\" } }\n" +
+                        "    ]}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": [\n" +
+                                "            {\n" +
+                                "                \"id\": \"6557964\",\n" +
+                                "                \"name\": \"Steinheim an der Murr\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"A.ADM4\",\n" +
+                                "                        \"name\": \"A.ADM4\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 137.01950073242188,\n" +
+                                "                \"match\": false\n" +
+                                "            },\n" +
+                                "            {\n" +
+                                "                \"id\": \"2827988\",\n" +
+                                "                \"name\": \"Steinheim am der Murr\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"P.PPL\",\n" +
+                                "                        \"name\": \"P.PPL\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 120.79658508300781,\n" +
+                                "                \"match\": false\n" +
+                                "            }\n" +
+                                "        ]\n" +
+                                "    }\n" +
+                                "}")));
+
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\": {\"query\": \"Steinheim an der Murr\", \"type\":\"A.ADM3\", \"type_strict\":\"should\", \"properties\" : [\n" +
+                        "      { \"p\" : \"http://www.geonames.org/ontology#countryCode\", \"v\" : \"DE\" }, { \"p\" : \"http://www.geonames.org/ontology#parentADM1\",\"v\" : { \"id\" : \"2951481\" } }\n" +
+                        "    ]}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": []\n" +
+                                "    }\n" +
+                                "}")));
+
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\": {\"query\": \"Steinheim an der Murr\", \"type\":\"A.ADM3\", \"type_strict\":\"should\", \"properties\" : [\n" +
+                        "      { \"p\" : \"http://www.geonames.org/ontology#parentADM1\",\"v\" : { \"id\" : \"2951481\" } }\n" +
+                        "    ]}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": []\n" +
+                                "    }\n" +
+                                "}")));
+
+        ASIA4J hClient = ASIA4JFactory.getClient(asiaEndpoint, GrafterizerHashtableClient.class);
+
+        hClient.reconcile(
+                new Annotation(
+                        new SingleColumnReconciliation(
+                                "Berlin",
+                                0.1,
+                                Collections.singletonList("A.ADM1")
+                        ),
+                        "geonames"));
+        hClient.reconcile(
+                new Annotation(
+                        new SingleColumnReconciliation(
+                                "Berlin",
+                                0.1,
+                                Collections.singletonList("A.ADM1")),
+                        "geonames")); // HASHMAP HIT
+
         Assert.assertEquals(
                 1,
                 asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
-        client.reconcile("Berlin", "A.ADM1", 0.1, "geonames");
+
+        List<ReconciliationSupportColumn> rsc = new ArrayList<>();
+        rsc.add(new ReconciliationSupportColumn(
+                "DE",
+                "http://www.geonames.org/ontology#countryCode",
+                SimilarityMeasure.EDIT,
+                0.5,
+                null));
+        rsc.add(new ReconciliationSupportColumn(
+                "2951481",
+                "http://www.geonames.org/ontology#parentADM1",
+                SimilarityMeasure.EDIT,
+                0.5,
+                new Annotation(null, null, "geonames")));
+
+        hClient.reconcile(
+                new Annotation(
+                        new MultiColumnReconciliation(
+                                "Steinheim an der Murr",
+                                0.1,
+                                Collections.singletonList("A.ADM4"),
+                                rsc
+                        ), "geonames"));
+
+        hClient.reconcile(
+                new Annotation(
+                        new MultiColumnReconciliation(
+                                "Steinheim an der Murr",
+                                0.1,
+                                Collections.singletonList("A.ADM4"),
+                                rsc
+                        ), "geonames"));
+
         Assert.assertEquals(
                 2,
                 asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
-        hClient.reconcile("Berlin", "A.ADM1", 0.2, "geonames");
+
+        client.reconcile(new Annotation(new SingleColumnReconciliation(
+                "Berlin",
+                0.1,
+                Collections.singletonList("A.ADM1")
+        ), "geonames"));
+
         Assert.assertEquals(
                 3,
                 asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
+
+        hClient.reconcile(new Annotation(new SingleColumnReconciliation(
+                "Berlin",
+                0.2, // threshold changes
+                Collections.singletonList("A.ADM1")
+        ), "geonames"));
+
+        Assert.assertEquals(
+                4,
+                asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
+
+        hClient.reconcile(
+                new Annotation(
+                        new MultiColumnReconciliation(
+                                "Steinheim an der Murr",
+                                0.1,
+                                Collections.singletonList("A.ADM3"), // type changes
+                                rsc
+                        ), "geonames"));
+
+        Assert.assertEquals(
+                5,
+                asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
+
+        rsc.remove(0);
+        hClient.reconcile(
+                new Annotation(
+                        new MultiColumnReconciliation(
+                                "Steinheim an der Murr",
+                                0.1,
+                                Collections.singletonList("A.ADM3"),
+                                rsc // support columns list changes
+                        ), "geonames"));
+
+        Assert.assertEquals(
+                6,
+                asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
+
     }
 
     @Test
@@ -180,22 +336,198 @@ public class ASIA4JTest {
                                 "}")));
 
         asiaService.stubFor(get(urlMatching("/reconcile?.*"))
-                .withQueryParam("queries", equalTo("{\"q0\": {\"query\": \"null\"}}"))
+                .withQueryParam("conciliator", equalTo("null"))
                 .willReturn(badRequest()));
+
+        Assert.assertEquals("", client.reconcile(null));
+        Assert.assertEquals("",
+                client.reconcile(new Annotation(new SingleColumnReconciliation(null, 0., null), null)));
+        Assert.assertEquals("",
+                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, null), null)));
+        Assert.assertEquals("6547539",
+                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, null), "geonames")));
+        Assert.assertEquals("2950157",
+                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, Collections.singletonList("A.ADM1")), "geonames")));
+    }
+
+    @Test
+    public void testGrafterizerReconciliation() {
+
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\": {\"query\": \"Berlin\"}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": [\n" +
+                                "            {\n" +
+                                "                \"id\": \"6547539\",\n" +
+                                "                \"name\": \"Berlin\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"A.ADM4\",\n" +
+                                "                        \"name\": \"A.ADM4\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 55.95427703857422,\n" +
+                                "                \"match\": false\n" +
+                                "            },\n" +
+                                "            {\n" +
+                                "                \"id\": \"10332205\",\n" +
+                                "                \"name\": \"Berlin\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"P.PPL\",\n" +
+                                "                        \"name\": \"P.PPL\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 55.2410774230957,\n" +
+                                "                \"match\": false\n" +
+                                "            },\n" +
+                                "            {\n" +
+                                "                \"id\": \"10332842\",\n" +
+                                "                \"name\": \"Berlin\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"P.PPL\",\n" +
+                                "                        \"name\": \"P.PPL\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 55.2410774230957,\n" +
+                                "                \"match\": false\n" +
+                                "            }\n" +
+                                "        ]\n" +
+                                "    }\n" +
+                                "}")));
+
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\":{\"query\":\"Berlin\",  \"type\":\"A.ADM1\", \"type_strict\":\"should\"}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": [\n" +
+                                "            {\n" +
+                                "                \"id\": \"2950157\",\n" +
+                                "                \"name\": \"Land Berlin\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"A.ADM1\",\n" +
+                                "                        \"name\": \"A.ADM1\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 36.59111785888672,\n" +
+                                "                \"match\": false\n" +
+                                "            },\n" +
+                                "            {\n" +
+                                "                \"id\": \"9611689\",\n" +
+                                "                \"name\": \"Mariehamns stad\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"A.ADM1\",\n" +
+                                "                        \"name\": \"A.ADM1\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 0,\n" +
+                                "                \"match\": false\n" +
+                                "            },\n" +
+                                "            {\n" +
+                                "                \"id\": \"9611692\",\n" +
+                                "                \"name\": \"Ålands landsbygd\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"A.ADM1\",\n" +
+                                "                        \"name\": \"A.ADM1\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 0,\n" +
+                                "                \"match\": false\n" +
+                                "            }\n" +
+                                "        ]\n" +
+                                "    }\n" +
+                                "}")));
 
         asiaService.stubFor(get(urlMatching("/reconcile?.*"))
                 .withQueryParam("conciliator", equalTo("null"))
                 .willReturn(badRequest()));
 
-        Assert.assertEquals("", client.reconcile(null, null, 0., null));
-        Assert.assertEquals("", client.reconcile(null, null, 0.1, "geonames"));
-        Assert.assertEquals("", client.reconcile("Berlin", null, 0.1, null));
+        Assert.assertEquals("", client.reconcile(null));
+        Assert.assertEquals("",
+                client.reconcile(new Annotation(new SingleColumnReconciliation(null, 0., null), null)));
+        Assert.assertEquals("",
+                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, null), null)));
         Assert.assertEquals("6547539",
-                client.reconcile("Berlin", null, 0.1, "geonames"));
+                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, null), "geonames")));
         Assert.assertEquals("2950157",
-                client.reconcile("Berlin", "A.ADM1", 0.1, "geonames"));
+                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, Collections.singletonList("A.ADM1")), "geonames")));
     }
 
+    @Test
+    public void testMultiColReconciliation() {
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\": {\"query\": \"Steinheim an der Murr\", \"properties\" : [\n" +
+                        "      { \"p\" : \"http://www.geonames.org/ontology#countryCode\", \"v\" : \"DE\" }, { \"p\" : \"http://www.geonames.org/ontology#parentADM1\",\"v\" : { \"id\" : \"2953481\" } }\n" +
+                        "    ]}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": []\n" +
+                                "    },\n" +
+                                "}")));
+
+        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
+                .withQueryParam("queries", equalToJson("{\"q0\": {\"query\": \"Steinheim an der Murr\", \"properties\" : [\n" +
+                        "      { \"p\" : \"http://www.geonames.org/ontology#countryCode\", \"v\" : \"DE\" }, { \"p\" : \"http://www.geonames.org/ontology#parentADM1\",\"v\" : { \"id\" : \"2951481\" } }\n" +
+                        "    ]}}"))
+                .withQueryParam("conciliator", equalTo("geonames"))
+                .willReturn(aResponse()
+                        .withStatus(200).withBody("{\n" +
+                                "    \"q0\": {\n" +
+                                "        \"result\": [\n" +
+                                "            {\n" +
+                                "                \"id\": \"6557964\",\n" +
+                                "                \"name\": \"Steinheim an der Murr\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"A.ADM4\",\n" +
+                                "                        \"name\": \"A.ADM4\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 137.01950073242188,\n" +
+                                "                \"match\": false\n" +
+                                "            },\n" +
+                                "            {\n" +
+                                "                \"id\": \"2827988\",\n" +
+                                "                \"name\": \"Steinheim am der Murr\",\n" +
+                                "                \"type\": [\n" +
+                                "                    {\n" +
+                                "                        \"id\": \"P.PPL\",\n" +
+                                "                        \"name\": \"P.PPL\"\n" +
+                                "                    }\n" +
+                                "                ],\n" +
+                                "                \"score\": 120.79658508300781,\n" +
+                                "                \"match\": false\n" +
+                                "            }\n" +
+                                "        ]\n" +
+                                "    }\n" +
+                                "}")));
+
+        Annotation parentADM1 = new Annotation(null, null, "geonames");
+
+        List<ReconciliationSupportColumn> rscQ0 = new ArrayList<>();
+        rscQ0.add(new ReconciliationSupportColumn("DE", "http://www.geonames.org/ontology#countryCode", SimilarityMeasure.EDIT, 0.5, null));
+        rscQ0.add(new ReconciliationSupportColumn("2953481", "http://www.geonames.org/ontology#parentADM1", SimilarityMeasure.EDIT, 0.5, parentADM1));
+
+        List<ReconciliationSupportColumn> rscQ1 = new ArrayList<>();
+        rscQ1.add(new ReconciliationSupportColumn("DE", "http://www.geonames.org/ontology#countryCode", SimilarityMeasure.EDIT, 0.5, null));
+        rscQ1.add(new ReconciliationSupportColumn("2951481", "http://www.geonames.org/ontology#parentADM1", SimilarityMeasure.EDIT, 0.5, parentADM1));
+
+        Assert.assertEquals("",
+                client.reconcile(new Annotation(new MultiColumnReconciliation("Steinheim an der Murr", 0., null, rscQ0), "geonames")));
+        Assert.assertEquals("6557964",
+                client.reconcile(new Annotation(new MultiColumnReconciliation("Steinheim an der Murr", 0., null, rscQ1), "geonames")));
+    }
 
     @Test
     public void testExtension() {

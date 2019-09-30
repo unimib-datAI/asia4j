@@ -1,8 +1,10 @@
 package it.unimib.disco.asia;
 
+import it.unimib.disco.asia.model.Annotation;
+
 public interface ASIA4J {
 
-    String reconcile(String label, String type, double threshold, String conciliator);
+    String reconcile(Annotation annotation);
 
     String extend(String id, String property, String conciliator);
 

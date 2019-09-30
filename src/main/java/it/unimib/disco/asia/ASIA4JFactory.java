@@ -33,11 +33,11 @@ public abstract class ASIA4JFactory {
     private static Hashtable<HashKey, ASIA4J> ht = new Hashtable<>();
 
     public static ASIA4J getClient(String endpoint) {
-        return getClient(endpoint, ASIAClient.class);
+        return getClient(endpoint, GrafterizerClient.class);
     }
 
     public static ASIA4J getClient() {
-        return getClient(ASIAClient.class);
+        return getClient(GrafterizerClient.class);
     }
 
     public static ASIA4J getClient(Class<? extends ASIA4J> clazz) {
