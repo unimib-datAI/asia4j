@@ -5,22 +5,41 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.sisyphsu.dateparser.DateParserUtils;
+import it.unimib.disco.asia.model.request.CustomEventLogicCondition;
+import it.unimib.disco.asia.model.request.CustomEventLogicRequest;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ASIAClient implements ASIA4J {
 
     private String endpoint;
 
-    private ObjectReader reader = new ObjectMapper().readerFor(new TypeReference<Object>() {});
+    private ObjectMapper mapper = new ObjectMapper();
+
+    private ObjectReader reader = mapper.readerFor(new TypeReference<Object>() {
+    });
 
     ASIAClient(String endpoint) {
         this.endpoint = endpoint;
 
-        if (this.endpoint != null && this.endpoint.charAt(endpoint.length() -1) != '/')
+        if (this.endpoint != null && this.endpoint.charAt(endpoint.length() - 1) != '/')
             this.endpoint += '/';
     }
 
@@ -37,7 +56,8 @@ public class ASIAClient implements ASIA4J {
             if (results.get(0).get("score").asDouble() >= threshold) {
                 return results.get(0).get("id").asText();
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         return "";
     }
@@ -51,7 +71,8 @@ public class ASIAClient implements ASIA4J {
             // Handle different kind of objects -> keep the first and return it as a string
             return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get(property).get(0).elements().next().asText();
 
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         return "";
     }
@@ -62,7 +83,8 @@ public class ASIAClient implements ASIA4J {
                     this.endpoint, URLEncoder.encode(id, "UTF-8"), source, target);
 
             return new ObjectMapper().readTree(new URL(url)).get("rows").get(id).get("exactMatch").get(0).elements().next().asText();
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         return "";
     }
@@ -73,8 +95,7 @@ public class ASIAClient implements ASIA4J {
             String formattedDate = DateParserUtils.parseDateTime(date).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String url = String.format("%sweather?ids=%s&dates=%s&aggregators=%s&weatherParams=%s&offsets=%s",
                     this.endpoint, id, formattedDate, aggregator, weatherParam, offset);
-//            System.out.println(new ObjectMapper().readTree(new URL(url)).get(0).get("weatherParameters").get(0).asText());
-            JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get("weatherParameters").get(0).get(aggregator+"Value");
+            JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get("weatherParameters").get(0).get(aggregator + "Value");
             if (!value.isNull()) {
                 return value.asText();
             }
@@ -93,7 +114,7 @@ public class ASIAClient implements ASIA4J {
             JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get("categories");
             if (!value.isNull()) {
                 List<String> list = reader.readValue(value);
-                return String.join(",",list);
+                return String.join(",", list);
             }
         } catch (Exception ignored) {
             System.out.println(ignored.getMessage());
@@ -103,4 +124,52 @@ public class ASIAClient implements ASIA4J {
 
 
     }
+
+    @Override
+    public String customEventMatcher(List<CustomEventLogicCondition> filters)  {
+
+        try {
+
+            HttpClient client = HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost(this.endpoint+"customevents/match");
+
+            CustomEventLogicRequest req = new CustomEventLogicRequest();
+            req.setFilters(filters);
+            req.createkey();
+            List<CustomEventLogicRequest> customEventLogicRequestList = new ArrayList<>();
+            customEventLogicRequestList.add(req);
+            String json = mapper.writeValueAsString(customEventLogicRequestList);;
+            StringEntity entity = new StringEntity(json);
+            httpPost.setEntity(entity);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+
+            HttpResponse response = client.execute(httpPost);
+
+            return EntityUtils.toString(response.getEntity());
+
+        } catch (Exception ignored) {
+            System.out.println(ignored.getMessage());
+        }
+
+        return "";
+    }
+
+    @Override
+    public String customEventSelect(String id, String propIds) {
+        try {
+
+            String url = String.format("%scustomevents/select?ids=%s&propIds=%s", this.endpoint, id, propIds);
+            JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get(propIds);
+            if (!value.isNull()) {
+                return value.asText();
+            }
+        } catch (Exception ignored) {
+            System.out.println(ignored.getMessage());
+        }
+
+        return "";
+
+    }
+
 }
