@@ -312,22 +312,15 @@ public class ASIA4JTest {
         asiaService.stubFor(get(urlMatching("/weather?.*"))
                 .withQueryParam("ids", equalTo("2953481"))
                 .withQueryParam("dates", equalTo("2018-07-25"))
-                .withQueryParam("aggregators", equalTo("null"))
+                .withQueryParam("aggregators", equalTo("min"))
                 .withQueryParam("weatherParams", equalTo("2t"))
                 .withQueryParam("offsets", equalTo("1"))
-                .willReturn(aResponse().withBody("[\n" +
-                        "    {\n" +
-                        "        \"geonamesId\": \"2953481\",\n" +
-                        "        \"validTime\": \"2018-07-25T00:00:00Z\",\n" +
-                        "        \"validityDateTime\": \"2018-07-26T00:00:00Z\",\n" +
-                        "        \"weatherParameters\": [\n" +
-                        "            {\n" +
-                        "                \"id\": \"2t\",\n" +
-                        "                \"value\": \"294.006742227\"\n" +
-                        "            }\n" +
-                        "        ],\n" +
-                        "        \"offset\": 1\n" +
-                        "    }\n" +
+                .willReturn(aResponse().withBody("[" +
+                        "{\"geonamesId\":\"2953481\"," +
+                        "\"date\":\"2018-07-25T00:00:00Z\"," +
+                        "\"weatherParameters\":" +
+                        "[" +
+                        "{\"id\":\"2t\",\"minValue\":293.3830516582,\"maxValue\":297.5957928093,\"avgValue\":295.700742760475}],\"offset\":1}" +
                         "]")));
 
         Assert.assertEquals("",
@@ -336,11 +329,13 @@ public class ASIA4JTest {
                 client.extendWeather("2953481", null, null, "2t", "1"));
         Assert.assertEquals("",
                 client.extendWeather("2953481", "2018-07-25", null, null, "1"));
-        Assert.assertEquals("294.006742227",
-                client.extendWeather("2953481", "2018-07-25", null, "2t", "1"));
-        Assert.assertEquals("294.006742227",
-                client.extendWeather("2953481", "20180725", null, "2t", "1"));
+        Assert.assertEquals("293.3830516582",
+                client.extendWeather("2953481", "2018-07-25", "min", "2t", "1"));
+        Assert.assertEquals("293.3830516582",
+                client.extendWeather("2953481", "20180725", "min", "2t", "1"));
     }
+
+
 
     @Test
     public void testGeoMatch() {

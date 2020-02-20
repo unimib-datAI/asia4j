@@ -68,11 +68,14 @@ public class ASIAClient implements ASIA4J {
             String formattedDate = DateParserUtils.parseDateTime(date).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String url = String.format("%sweather?ids=%s&dates=%s&aggregators=%s&weatherParams=%s&offsets=%s",
                     this.endpoint, id, formattedDate, aggregator, weatherParam, offset);
-            JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get("weatherParameters").get(0).get("value");
+//            System.out.println(new ObjectMapper().readTree(new URL(url)).get(0).get("weatherParameters").get(0).asText());
+            JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get("weatherParameters").get(0).get(aggregator+"Value");
             if (!value.isNull()) {
                 return value.asText();
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+            System.out.println(ignored.getMessage());
+        }
 
         return "";
     }
