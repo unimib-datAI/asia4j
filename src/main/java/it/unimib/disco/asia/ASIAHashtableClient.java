@@ -27,8 +27,15 @@ public class ASIAHashtableClient extends ASIAClient implements ASIA4J {
         return ht.computeIfAbsent(req, k -> super.geoExactMatch(id, source, target));
     }
 
+    public String keywordClustering(String keyword) {
+        ASIARequest req = new KeywordClusteringRequest(keyword);
+        return ht.computeIfAbsent(req, k -> super.keywordClustering(keyword));
+    }
+
     public String extendWeather(String id, String date, String aggregator, String weatherParam, String offset) {
         ASIARequest req = new WeatherRequest(id, date, aggregator, weatherParam, offset);
         return ht.computeIfAbsent(req, k -> super.extendWeather(id, date, aggregator, weatherParam, offset));
     }
+
+
 }
