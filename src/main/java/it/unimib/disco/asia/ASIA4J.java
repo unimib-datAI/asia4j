@@ -10,4 +10,5 @@ public interface ASIA4J {
 
     String geoExactMatch(String id, String source, String target);
 
+    String keywordClustering(String keyword);
 }

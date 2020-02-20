@@ -1,16 +1,21 @@
 package it.unimib.disco.asia;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.sisyphsu.dateparser.DateParserUtils;
 
 import java.net.URL;
 import java.net.URLEncoder;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class ASIAClient implements ASIA4J {
 
     private String endpoint;
+
+    private ObjectReader reader = new ObjectMapper().readerFor(new TypeReference<Object>() {});
 
     ASIAClient(String endpoint) {
         this.endpoint = endpoint;
@@ -78,5 +83,24 @@ public class ASIAClient implements ASIA4J {
         }
 
         return "";
+    }
+
+    @Override
+    public String keywordClustering(String keyword) {
+        try {
+            String formattedkey = keyword.replace(" ", "%20");
+            String url = String.format("%skeywordscategories?kws=%s", this.endpoint, formattedkey);
+            JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get("categories");
+            if (!value.isNull()) {
+                List<String> list = reader.readValue(value);
+                return String.join(",",list);
+            }
+        } catch (Exception ignored) {
+            System.out.println(ignored.getMessage());
+        }
+
+        return "";
+
+
     }
 }

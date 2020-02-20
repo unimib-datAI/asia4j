@@ -10,7 +10,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class ASIA4JTestIT {
 
-    private static final String asiaEndpoint = "//put a real enpoint here";
+    private static final String asiaEndpoint = "http://titan-inside.disco.unimib.it:8088/";
     private static ASIA4J client;
 
     @BeforeClass
@@ -29,6 +29,15 @@ public class ASIA4JTestIT {
     }
 
 
+    @Test
+    public void testClustering(){
+        Assert.assertEquals("\"/Haus/Sicherheit zu Hause,/Haus/Sicherheit zu Hause/In-Home-Gefahrenmelder," +
+                        "/Haus/Sicherheit zu Hause/In-Home-Gefahrenmelder/Kohlenmonoxid-Detektoren," +
+                        "/Haus/Sicherheit zu Hause/Feuerlöscher,/Haus/Sicherheit zu Hause/In-Home-Gefahrenmelder/Rauchmelder," +
+                        "/Gesundheit/Gesundheitsbedingungen & Bedenken/Fußgesundheit/Anti-Pilz-Heilmittel zu Fuß," +
+                        "/Haus/Sicherheit zu Hause/Schließfächer & Hide-A-Keys\"",
+                client.keywordClustering("1 zu 4 demultiplexer"));
+    }
 
 
 
