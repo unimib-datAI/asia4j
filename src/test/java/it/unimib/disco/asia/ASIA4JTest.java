@@ -338,6 +338,8 @@ public class ASIA4JTest {
                 client.extendWeather("2953481", "2018-07-25", null, null, "1"));
         Assert.assertEquals("294.006742227",
                 client.extendWeather("2953481", "2018-07-25", null, "2t", "1"));
+        Assert.assertEquals("294.006742227",
+                client.extendWeather("2953481", "20180725", null, "2t", "1"));
     }
 
     @Test

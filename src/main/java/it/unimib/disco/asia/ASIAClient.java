@@ -2,9 +2,11 @@ package it.unimib.disco.asia;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.sisyphsu.dateparser.DateParserUtils;
 
 import java.net.URL;
 import java.net.URLEncoder;
+import java.time.format.DateTimeFormatter;
 
 public class ASIAClient implements ASIA4J {
 
@@ -62,8 +64,10 @@ public class ASIAClient implements ASIA4J {
 
     public String extendWeather(String id, String date, String aggregator, String weatherParam, String offset) {
         try {
+
+            String formattedDate = DateParserUtils.parseDateTime(date).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             String url = String.format("%sweather?ids=%s&dates=%s&aggregators=%s&weatherParams=%s&offsets=%s",
-                    this.endpoint, id, date, aggregator, weatherParam, offset);
+                    this.endpoint, id, formattedDate, aggregator, weatherParam, offset);
             JsonNode value = new ObjectMapper().readTree(new URL(url)).get(0).get("weatherParameters").get(0).get("value");
             if (!value.isNull()) {
                 return value.asText();
