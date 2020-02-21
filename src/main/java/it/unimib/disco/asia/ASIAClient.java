@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.sisyphsu.dateparser.DateParserUtils;
-import it.unimib.disco.asia.model.request.CustomEventMatchCondition;
-import it.unimib.disco.asia.model.request.CustomEventMatchRequest;
+import it.unimib.disco.asia.model.request.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -18,6 +17,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ASIAClient implements ASIA4J {
@@ -164,5 +164,46 @@ public class ASIAClient implements ASIA4J {
         return "";
 
     }
+
+
+    @Override
+    public String mediaAttention(int offset, String features, String categories,
+                                 String startDate, String endDate, String aggregator){
+
+        try {
+
+            HttpClient client = HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost(this.endpoint+"mediaattention/enrich");
+
+            MediaAttentionRequest req = new MediaAttentionRequest();
+            req.setForecast_offset(offset);
+            req.setCategories(Arrays.asList(categories));
+            req.setFeatures(Arrays.asList(features));
+            req.setDates(Arrays.asList(startDate, endDate));
+
+//            List<MediaAttentionRequest> mediaAttentionRequestList = Arrays.asList(req);
+
+            String json = mapper.writeValueAsString(req);;
+            StringEntity entity = new StringEntity(json);
+            httpPost.setEntity(entity);
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+
+            HttpResponse response = client.execute(httpPost);
+
+            JsonNode value = new ObjectMapper().readTree(EntityUtils.toString(response.getEntity())).get(0).get("data").get(0).get(features+aggregator);
+            if (!value.isNull()) {
+                return value.asText();
+            }
+
+        } catch (Exception ignored) {
+            System.out.println(ignored.getMessage());
+        }
+
+        return "";
+
+
+    }
+
 
 }

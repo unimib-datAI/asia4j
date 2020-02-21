@@ -19,4 +19,7 @@ public interface ASIA4J {
     String customEventMatcher(List<CustomEventMatchCondition> filters);
 
     String customEventSelect(String id, String propIds);
+
+    String mediaAttention(int offset, String features, String categories,
+                          String startDate, String endDate, String aggregator);
 }

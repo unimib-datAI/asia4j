@@ -52,6 +52,13 @@ public class ASIAHashtableClient extends ASIAClient implements ASIA4J {
         return ht.computeIfAbsent(req, k -> super.customEventSelect(id, propIds));
     }
 
+    public String mediaAttention(int offset, String features, String categories,
+                                 String startDate, String endDate, String aggregator){
+
+        ASIARequest req = new MediaAttentionClientRequest(offset,features,categories,startDate,endDate,aggregator);
+        return ht.computeIfAbsent(req, k-> super.mediaAttention(offset,features,categories,startDate,endDate,aggregator));
+    }
 
 
-}
+
+    }

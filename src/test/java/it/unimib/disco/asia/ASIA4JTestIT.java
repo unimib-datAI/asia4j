@@ -6,11 +6,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ASIA4JTestIT {
 
-    private static final String asiaEndpoint = "//add here ASIA address";
+    private static final String asiaEndpoint = "//add here ASIA server address";
     private static ASIA4J client;
 
     @BeforeClass
@@ -39,7 +40,7 @@ public class ASIA4JTestIT {
                 client.keywordClustering("1 zu 4 demultiplexer"));
     }
 
-    @Test
+//    @Test
     public void testCustomEventMatch(){
 
        String tr = "{\n" +
@@ -90,6 +91,19 @@ public class ASIA4JTestIT {
         String propIds = "product.sku";
         Assert.assertEquals("13541152",
                 client.customEventSelect(ids,propIds));
+    }
+
+
+    @Test
+    public void testMediaAttention(){
+        int offset = -1;
+        String category = "football";
+        String startDate = "20170201";
+        String endDate = "2017-02-03";
+        String feature = "EventsCounts";
+        String aggregator = "PastMax";
+       Assert.assertEquals("27.0",
+                client.mediaAttention(offset,feature, category,startDate, endDate, aggregator));
     }
 
 
