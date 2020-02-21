@@ -149,6 +149,9 @@ public class ASIA4JTest {
                                 Collections.singletonList("A.ADM1")),
                         "geonames")); // HASHMAP HIT
 
+        ((GrafterizerHashtableClient) hClient)
+                .reconcileSingleColumn("Berlin", "A.ADM1", .1, "geonames"); // HASHMAP HIT
+
         Assert.assertEquals(
                 1,
                 asiaService.countRequestsMatching(getRequestedFor(urlMatching("/reconcile?.*")).build()).getCount());
@@ -348,118 +351,14 @@ public class ASIA4JTest {
                 client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, null), "geonames")));
         Assert.assertEquals("2950157",
                 client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, Collections.singletonList("A.ADM1")), "geonames")));
-    }
 
-    @Test
-    public void testGrafterizerReconciliation() {
-
-        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
-                .withQueryParam("queries", equalToJson("{\"q0\": {\"query\": \"Berlin\"}}"))
-                .withQueryParam("conciliator", equalTo("geonames"))
-                .willReturn(aResponse()
-                        .withStatus(200).withBody("{\n" +
-                                "    \"q0\": {\n" +
-                                "        \"result\": [\n" +
-                                "            {\n" +
-                                "                \"id\": \"6547539\",\n" +
-                                "                \"name\": \"Berlin\",\n" +
-                                "                \"type\": [\n" +
-                                "                    {\n" +
-                                "                        \"id\": \"A.ADM4\",\n" +
-                                "                        \"name\": \"A.ADM4\"\n" +
-                                "                    }\n" +
-                                "                ],\n" +
-                                "                \"score\": 55.95427703857422,\n" +
-                                "                \"match\": false\n" +
-                                "            },\n" +
-                                "            {\n" +
-                                "                \"id\": \"10332205\",\n" +
-                                "                \"name\": \"Berlin\",\n" +
-                                "                \"type\": [\n" +
-                                "                    {\n" +
-                                "                        \"id\": \"P.PPL\",\n" +
-                                "                        \"name\": \"P.PPL\"\n" +
-                                "                    }\n" +
-                                "                ],\n" +
-                                "                \"score\": 55.2410774230957,\n" +
-                                "                \"match\": false\n" +
-                                "            },\n" +
-                                "            {\n" +
-                                "                \"id\": \"10332842\",\n" +
-                                "                \"name\": \"Berlin\",\n" +
-                                "                \"type\": [\n" +
-                                "                    {\n" +
-                                "                        \"id\": \"P.PPL\",\n" +
-                                "                        \"name\": \"P.PPL\"\n" +
-                                "                    }\n" +
-                                "                ],\n" +
-                                "                \"score\": 55.2410774230957,\n" +
-                                "                \"match\": false\n" +
-                                "            }\n" +
-                                "        ]\n" +
-                                "    }\n" +
-                                "}")));
-
-        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
-                .withQueryParam("queries", equalToJson("{\"q0\":{\"query\":\"Berlin\",  \"type\":\"A.ADM1\", \"type_strict\":\"should\"}}"))
-                .withQueryParam("conciliator", equalTo("geonames"))
-                .willReturn(aResponse()
-                        .withStatus(200).withBody("{\n" +
-                                "    \"q0\": {\n" +
-                                "        \"result\": [\n" +
-                                "            {\n" +
-                                "                \"id\": \"2950157\",\n" +
-                                "                \"name\": \"Land Berlin\",\n" +
-                                "                \"type\": [\n" +
-                                "                    {\n" +
-                                "                        \"id\": \"A.ADM1\",\n" +
-                                "                        \"name\": \"A.ADM1\"\n" +
-                                "                    }\n" +
-                                "                ],\n" +
-                                "                \"score\": 36.59111785888672,\n" +
-                                "                \"match\": false\n" +
-                                "            },\n" +
-                                "            {\n" +
-                                "                \"id\": \"9611689\",\n" +
-                                "                \"name\": \"Mariehamns stad\",\n" +
-                                "                \"type\": [\n" +
-                                "                    {\n" +
-                                "                        \"id\": \"A.ADM1\",\n" +
-                                "                        \"name\": \"A.ADM1\"\n" +
-                                "                    }\n" +
-                                "                ],\n" +
-                                "                \"score\": 0,\n" +
-                                "                \"match\": false\n" +
-                                "            },\n" +
-                                "            {\n" +
-                                "                \"id\": \"9611692\",\n" +
-                                "                \"name\": \"Ålands landsbygd\",\n" +
-                                "                \"type\": [\n" +
-                                "                    {\n" +
-                                "                        \"id\": \"A.ADM1\",\n" +
-                                "                        \"name\": \"A.ADM1\"\n" +
-                                "                    }\n" +
-                                "                ],\n" +
-                                "                \"score\": 0,\n" +
-                                "                \"match\": false\n" +
-                                "            }\n" +
-                                "        ]\n" +
-                                "    }\n" +
-                                "}")));
-
-        asiaService.stubFor(get(urlMatching("/reconcile?.*"))
-                .withQueryParam("conciliator", equalTo("null"))
-                .willReturn(badRequest()));
-
-        Assert.assertEquals("", client.reconcile(null));
-        Assert.assertEquals("",
-                client.reconcile(new Annotation(new SingleColumnReconciliation(null, 0., null), null)));
-        Assert.assertEquals("",
-                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, null), null)));
+        GrafterizerClient gClient = (GrafterizerClient) client;
+        Assert.assertEquals("", gClient.reconcileSingleColumn(null, null, 0., null));
+        Assert.assertEquals("", gClient.reconcileSingleColumn("Berlin", null, 0.1, null));
         Assert.assertEquals("6547539",
-                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, null), "geonames")));
+                gClient.reconcileSingleColumn("Berlin", null, 0.1, "geonames"));
         Assert.assertEquals("2950157",
-                client.reconcile(new Annotation(new SingleColumnReconciliation("Berlin", 0.1, Collections.singletonList("A.ADM1")), "geonames")));
+                gClient.reconcileSingleColumn("Berlin", "A.ADM1", 0.1, "geonames"));
     }
 
     @Test
@@ -614,13 +513,13 @@ public class ASIA4JTest {
                 .withQueryParam("conciliator", equalTo("null"))
                 .willReturn(serverError()));
 
-        Assert.assertEquals("", client.extend(null, null, null));
-        Assert.assertEquals("", client.extend(null, null, "geonames"));
-        Assert.assertEquals("", client.extend("6554818", null, null));
-        Assert.assertEquals("", client.extend(null, "parentADM1", null));
-        Assert.assertEquals("", client.extend("6554818", "parentADM1", null));
+        Assert.assertEquals("", client.extendFromConciliator(null, null, null));
+        Assert.assertEquals("", client.extendFromConciliator(null, null, "geonames"));
+        Assert.assertEquals("", client.extendFromConciliator("6554818", null, null));
+        Assert.assertEquals("", client.extendFromConciliator(null, "parentADM1", null));
+        Assert.assertEquals("", client.extendFromConciliator("6554818", "parentADM1", null));
         Assert.assertEquals("2847618",
-                client.extend("6554818", "parentADM1", "geonames"));
+                client.extendFromConciliator("6554818", "parentADM1", "geonames"));
     }
 
     @Test
@@ -644,22 +543,15 @@ public class ASIA4JTest {
         asiaService.stubFor(get(urlMatching("/weather?.*"))
                 .withQueryParam("ids", equalTo("2953481"))
                 .withQueryParam("dates", equalTo("2018-07-25"))
-                .withQueryParam("aggregators", equalTo("null"))
+                .withQueryParam("aggregators", equalTo("min"))
                 .withQueryParam("weatherParams", equalTo("2t"))
                 .withQueryParam("offsets", equalTo("1"))
-                .willReturn(aResponse().withBody("[\n" +
-                        "    {\n" +
-                        "        \"geonamesId\": \"2953481\",\n" +
-                        "        \"validTime\": \"2018-07-25T00:00:00Z\",\n" +
-                        "        \"validityDateTime\": \"2018-07-26T00:00:00Z\",\n" +
-                        "        \"weatherParameters\": [\n" +
-                        "            {\n" +
-                        "                \"id\": \"2t\",\n" +
-                        "                \"value\": \"294.006742227\"\n" +
-                        "            }\n" +
-                        "        ],\n" +
-                        "        \"offset\": 1\n" +
-                        "    }\n" +
+                .willReturn(aResponse().withBody("[" +
+                        "{\"geonamesId\":\"2953481\"," +
+                        "\"date\":\"2018-07-25T00:00:00Z\"," +
+                        "\"weatherParameters\":" +
+                        "[" +
+                        "{\"id\":\"2t\",\"minValue\":293.3830516582,\"maxValue\":297.5957928093,\"avgValue\":295.700742760475}],\"offset\":1}" +
                         "]")));
 
         Assert.assertEquals("",
@@ -668,12 +560,16 @@ public class ASIA4JTest {
                 client.extendWeather("2953481", null, null, "2t", "1"));
         Assert.assertEquals("",
                 client.extendWeather("2953481", "2018-07-25", null, null, "1"));
-        Assert.assertEquals("294.006742227",
-                client.extendWeather("2953481", "2018-07-25", null, "2t", "1"));
+        Assert.assertEquals("293.3830516582",
+                client.extendWeather("2953481", "2018-07-25", "min", "2t", "1"));
+        Assert.assertEquals("293.3830516582",
+                client.extendWeather("2953481", "20180725", "min", "2t", "1"));
     }
 
+
+
     @Test
-    public void testGeoMatch() {
+    public void testExtendSameAs() {
         asiaService.stubFor(get(urlMatching("/geoExactMatch?.*"))
                 .withQueryParam("ids", equalTo("Milan"))
                 .withQueryParam("source", equalTo("dbpedia"))
@@ -704,15 +600,15 @@ public class ASIA4JTest {
                 .willReturn(serverError()));
 
         Assert.assertEquals("",
-                client.geoExactMatch(null, null, null));
+                client.extendSameAs(null, null, null));
         Assert.assertEquals("",
-                client.geoExactMatch("Milan", "dbpedia", null));
+                client.extendSameAs("Milan", "dbpedia", null));
         Assert.assertEquals("",
-                client.geoExactMatch("Milan", null, "wikidata"));
+                client.extendSameAs("Milan", null, "wikidata"));
         Assert.assertEquals("",
-                client.geoExactMatch(null, "dbpedia", "wikidata"));
+                client.extendSameAs(null, "dbpedia", "wikidata"));
         Assert.assertEquals("http://www.wikidata.org/entity/Q49295412",
-                client.geoExactMatch("Milan", "dbpedia", "wikidata"));
+                client.extendSameAs("Milan", "dbpedia", "wikidata"));
     }
 
 }
