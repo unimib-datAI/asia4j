@@ -41,14 +41,25 @@ String geoID =  hClient.reconcile(
 
 ```
 
+### (Deprecated) Reconcile a single column
+The GrafterizerClient exposes a method that allows you to achieve the above result without
+providing the Annotation object (as in the old ASIA4J interface).
+This method is deprecated and then removed from the interface, but it's still implemented 
+in the GrafterizerClient.
+```
+String geoID = ((GrafterizerHashtableClient) hClient)
+                .reconcileSingleColumn("Berlin", "A.ADM1", .1, "geonames");
+
+```
+
 ## Extension
 The identified retrieved using the reconciliation functionality can be used to extract from the reference knowledge base a
 data related to that entity. 
-The entity's properties can be queried using the `extension` method. 
+The entity's properties can be queried using the `extendFromConciliator` method. 
 In the following code snippet used the Berlin ID to obtain the `parentADM1` (that is the id of the region) using the geonames service.
 
 ```java
-String property = client.extend("6554818", "parentADM1", "geonames");
+String property = client.extendFromConciliator("6554818", "parentADM1", "geonames");
 ```
  
  
