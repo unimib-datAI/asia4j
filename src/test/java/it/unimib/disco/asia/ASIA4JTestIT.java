@@ -1,20 +1,16 @@
 package it.unimib.disco.asia;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import it.unimib.disco.asia.model.request.CustomEventLogicCondition;
+import it.unimib.disco.asia.model.request.CustomEventMatchCondition;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-
 public class ASIA4JTestIT {
 
-    private static final String asiaEndpoint = "";
+    private static final String asiaEndpoint = "//add here ASIA address";
     private static ASIA4J client;
 
     @BeforeClass
@@ -43,7 +39,7 @@ public class ASIA4JTestIT {
                 client.keywordClustering("1 zu 4 demultiplexer"));
     }
 
-//    @Test
+    @Test
     public void testCustomEventMatch(){
 
        String tr = "{\n" +
@@ -74,8 +70,8 @@ public class ASIA4JTestIT {
                 "  },";
 
 
-        List<CustomEventLogicCondition> conditions = new ArrayList<>();
-        CustomEventLogicCondition c1 = new CustomEventLogicCondition();
+        List<CustomEventMatchCondition> conditions = new ArrayList<>();
+        CustomEventMatchCondition c1 = new CustomEventMatchCondition();
         c1.setPropertyID("startDate");
         c1.setOperator("==");
         c1.setValue("20170514");

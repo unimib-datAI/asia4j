@@ -1,20 +1,22 @@
 package it.unimib.disco.asia.model.request;
 
-public class CustomEventLogicCondition {
+import java.util.Objects;
+
+public class CustomEventMatchCondition {
 
     private String propertyID;
     private String operator;
     private String value;
     private boolean column;
 
-    public CustomEventLogicCondition(String propertyID, String operator, String value, boolean column) {
+    public CustomEventMatchCondition(String propertyID, String operator, String value, boolean column) {
         this.propertyID = propertyID;
         this.operator = operator;
         this.value = value;
         this.column = column;
     }
 
-    public CustomEventLogicCondition() {
+    public CustomEventMatchCondition() {
     }
 
     public String getPropertyID() {
@@ -47,5 +49,21 @@ public class CustomEventLogicCondition {
 
     public void setColumn(boolean column) {
         this.column = column;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CustomEventMatchCondition that = (CustomEventMatchCondition) o;
+        return propertyID.equals(that.propertyID) &&
+                operator.equals(that.operator) &&
+                value.equals(that.value) &&
+                column == that.column;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(propertyID, operator, value, column);
     }
 }

@@ -1,10 +1,8 @@
 package it.unimib.disco.asia;
 
-import it.unimib.disco.asia.model.request.CustomEventLogicCondition;
+import it.unimib.disco.asia.model.request.CustomEventMatchCondition;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public interface ASIA4J {
 
@@ -18,7 +16,7 @@ public interface ASIA4J {
 
     String keywordClustering(String keyword);
 
-    String customEventMatcher(List<CustomEventLogicCondition> filters);
+    String customEventMatcher(List<CustomEventMatchCondition> filters);
 
     String customEventSelect(String id, String propIds);
 }

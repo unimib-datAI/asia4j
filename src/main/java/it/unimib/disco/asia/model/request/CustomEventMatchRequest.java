@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class CustomEventLogicRequest extends ASIARequest {
+public class CustomEventMatchRequest extends ASIARequest {
     private List<String> key;
-    private List<CustomEventLogicCondition> filters;
+    private List<CustomEventMatchCondition> filters;
 
-    public CustomEventLogicRequest() {
+    public CustomEventMatchRequest() {
     }
 
-    public CustomEventLogicRequest(List<String> key, List<CustomEventLogicCondition> filters) {
+    public CustomEventMatchRequest(List<String> key, List<CustomEventMatchCondition> filters) {
         this.key = key;
         this.filters = filters;
     }
@@ -24,18 +24,18 @@ public class CustomEventLogicRequest extends ASIARequest {
         this.key = key;
     }
 
-    public List<CustomEventLogicCondition> getFilters() {
+    public List<CustomEventMatchCondition> getFilters() {
         return filters;
     }
 
-    public void setFilters(List<CustomEventLogicCondition> filters) {
+    public void setFilters(List<CustomEventMatchCondition> filters) {
         this.filters = filters;
     }
 
     public void createkey(){
         if (Objects.nonNull(this.filters)){
             if (Objects.isNull(this.key)) this.key = new ArrayList<>();
-            for (CustomEventLogicCondition condition: this.filters) {
+            for (CustomEventMatchCondition condition: this.filters) {
                 if (condition.isColumn()) this.key.add(condition.getValue());
 
             }
@@ -45,11 +45,15 @@ public class CustomEventLogicRequest extends ASIARequest {
 
     @Override
     public boolean equals(Object o) {
-        return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CustomEventMatchRequest that = (CustomEventMatchRequest) o;
+        return key.equals(that.key) &&
+                filters.equals(that.filters) ;
     }
 
     @Override
     public int hashCode() {
-        return 0;
+        return Objects.hash(key, filters);
     }
 }

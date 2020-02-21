@@ -3,6 +3,7 @@ package it.unimib.disco.asia;
 import it.unimib.disco.asia.model.request.*;
 
 import java.util.Hashtable;
+import java.util.List;
 
 public class ASIAHashtableClient extends ASIAClient implements ASIA4J {
 
@@ -36,6 +37,21 @@ public class ASIAHashtableClient extends ASIAClient implements ASIA4J {
         ASIARequest req = new WeatherRequest(id, date, aggregator, weatherParam, offset);
         return ht.computeIfAbsent(req, k -> super.extendWeather(id, date, aggregator, weatherParam, offset));
     }
+
+
+
+    public String customEventMatcher(List<CustomEventMatchCondition> filters)  {
+        CustomEventMatchRequest req = new CustomEventMatchRequest();
+        req.setFilters(filters);
+        req.createkey();
+        return ht.computeIfAbsent(req, k -> super.customEventMatcher(filters));
+    }
+
+    public String customEventSelect(String id, String propIds) {
+        ASIARequest req = new CustomEventSelectRequest(id, propIds);
+        return ht.computeIfAbsent(req, k -> super.customEventSelect(id, propIds));
+    }
+
 
 
 }

@@ -5,27 +5,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.sisyphsu.dateparser.DateParserUtils;
-import it.unimib.disco.asia.model.request.CustomEventLogicCondition;
-import it.unimib.disco.asia.model.request.CustomEventLogicRequest;
-import org.apache.http.HttpEntity;
+import it.unimib.disco.asia.model.request.CustomEventMatchCondition;
+import it.unimib.disco.asia.model.request.CustomEventMatchRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ASIAClient implements ASIA4J {
 
@@ -126,19 +119,19 @@ public class ASIAClient implements ASIA4J {
     }
 
     @Override
-    public String customEventMatcher(List<CustomEventLogicCondition> filters)  {
+    public String customEventMatcher(List<CustomEventMatchCondition> filters)  {
 
         try {
 
             HttpClient client = HttpClients.createDefault();
             HttpPost httpPost = new HttpPost(this.endpoint+"customevents/match");
 
-            CustomEventLogicRequest req = new CustomEventLogicRequest();
+            CustomEventMatchRequest req = new CustomEventMatchRequest();
             req.setFilters(filters);
             req.createkey();
-            List<CustomEventLogicRequest> customEventLogicRequestList = new ArrayList<>();
-            customEventLogicRequestList.add(req);
-            String json = mapper.writeValueAsString(customEventLogicRequestList);;
+            List<CustomEventMatchRequest> customEventMatchRequestList = new ArrayList<>();
+            customEventMatchRequestList.add(req);
+            String json = mapper.writeValueAsString(customEventMatchRequestList);;
             StringEntity entity = new StringEntity(json);
             httpPost.setEntity(entity);
             httpPost.setHeader("Accept", "application/json");
